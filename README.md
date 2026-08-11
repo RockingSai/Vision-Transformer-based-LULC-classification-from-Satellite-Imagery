@@ -189,4 +189,4 @@ Presented at the **International Conference on Networking and Computing Technolo
 
 ---
 
-**Academic Final Year Project | Team Size: 4 | Role: Team Leader**
+**Academic Final Year Project | Team Size: 5 | Role: Team Leader**
