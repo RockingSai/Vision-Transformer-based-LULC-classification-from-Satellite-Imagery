@@ -1,556 +1,192 @@
-# Vision-Transformer-based-LULC-classification-from-Satellite-Imagery
+# Vision Transformer-Based LULC Classification from Satellite Imagery
+
+## Project Overview
+
+This project uses a **MaxViT (Maximal Vision Transformer)** backbone for image-based **Land Use and Land Cover (LULC)** analysis from satellite imagery. The notebook processes yearly satellite images and generates LULC predictions for the period **2019–2026**.
+
+The project focuses on identifying land-cover classes and analyzing their percentage changes over time.
+
+## Project Details
+
+- **Project Type:** Academic / Final Year Project
+- **Domain:** Deep Learning, Computer Vision, Remote Sensing
+- **Model:** MaxViT Tiny (`maxvit_tiny_rw_224`)
+- **Framework:** PyTorch
+- **Language:** Python
+- **Platform:** Google Colab
+- **Analysis Period:** 2019–2026
+- **Team Size:** 4
+- **Role:** Team Leader
 
-# PyTorch Image Models
-!pip install timm
+## LULC Classes
 
-import torch
-import timm
-import torch.nn as nn
-import torchvision.transforms as T
-import numpy as np
-import os
+The notebook uses the following eight classes:
 
-from PIL import Image
-import pandas as pd
-import matplotlib.pyplot as plt
-from collections import Counter
+1. Water
+2. Trees
+3. Flooded Vegetation
+4. Crops
+5. Shrub
+6. Built-up
+7. Bare Land
+8. Snow/Ice
 
+## Tech Stack
 
-# ============================================================
-# 1. GOOGLE DRIVE
-# ============================================================
+- Python
+- PyTorch
+- PyTorch Image Models (timm)
+- NumPy
+- Pandas
+- OpenCV / PIL
+- Matplotlib
+- Scikit-learn
 
-from google.colab import drive
-drive.mount('/content/drive')
+## Tools and Platforms
 
-BASE_PATH = "/content/drive/MyDrive"
+- Google Colab
+- Google Drive
+- Jupyter Notebook
+- PyTorch
+- timm
 
+## Methodology
 
-# ============================================================
-# 2. DATASET FOLDERS
-# ============================================================
+The notebook follows these main steps:
 
-YEAR_FOLDERS = {
-    "2019": "2019 entire year",
-    "2020": "2020 entire year",
-    "2021": "2021 entire year",
-    "2022": "2022 entire year",
-    "2023": "2023 entire year",
-    "2024": "2024 entire year",
-    "2025": "2025 entire year",
-    "2026": "2026 entire year"
-}
+1. Install and import the required Python libraries.
+2. Mount Google Drive in Google Colab.
+3. Organize satellite images into year-wise folders from 2019 to 2026.
+4. Resize input images to **224 × 224** pixels.
+5. Apply ImageNet normalization.
+6. Load a pretrained **MaxViT Tiny** backbone using `timm`.
+7. Add a segmentation head for the eight LULC classes.
+8. Generate pixel-level LULC predictions.
+9. Calculate the percentage of each land-cover class in the predicted mask.
+10. Aggregate the results year-wise.
+11. Visualize temporal changes in land cover.
 
+## Model Architecture
 
-# ============================================================
-# 3. LULC CLASSES
-# ============================================================
+The implementation uses:
 
-CLASSES = [
-    "Water",
-    "Trees",
-    "Flooded_Veg",
-    "Crops",
-    "Shrub",
-    "Built_up",
-    "Bare_land",
-    "Snow_Ice"
-]
+- **Backbone:** `maxvit_tiny_rw_224`
+- **Pretrained weights:** ImageNet pretrained MaxViT backbone
+- **Segmentation Head:**
+  - 3 × 3 convolution
+  - ReLU activation
+  - 1 × 1 convolution for eight output classes
+- **Output:** 224 × 224 LULC prediction map
 
-NUM_CLASSES = len(CLASSES)
+## Analysis and Visualizations
 
+The notebook generates:
 
-# ============================================================
-# 4. MAXVIT SEGMENTATION MODEL
-# ============================================================
+- Overall LULC change from 2019–2026
+- Built-up area / urban expansion analysis
+- Water-body change analysis
+- Overall vegetation change analysis
+- Land-cover composition using stacked area plots
+- Net LULC change between 2019 and 2026
+- Prediction confidence maps
 
-class MaxViTSegmentation(nn.Module):
+## Dataset Organization
 
-    def __init__(self, num_classes):
-        super().__init__()
+The notebook expects yearly image folders in Google Drive:
 
-        self.backbone = timm.create_model(
-            "maxvit_tiny_rw_224",
-            pretrained=True,
-            features_only=True
-        )
+    MyDrive/
+    ├── 2019 entire year/
+    ├── 2020 entire year/
+    ├── 2021 entire year/
+    ├── 2022 entire year/
+    ├── 2023 entire year/
+    ├── 2024 entire year/
+    ├── 2025 entire year/
+    └── 2026 entire year/
 
-        in_channels = self.backbone.feature_info[-1]["num_chs"]
+Supported image formats:
 
-        self.seg_head = nn.Sequential(
-            nn.Conv2d(
-                in_channels,
-                256,
-                kernel_size=3,
-                padding=1
-            ),
+- `.png`
+- `.jpg`
+- `.tif`
 
-            nn.ReLU(),
+## Installation
 
-            nn.Conv2d(
-                256,
-                num_classes,
-                kernel_size=1
-            )
-        )
+The notebook is designed for Google Colab.
 
-    def forward(self, x):
+Install the main model library:
 
-        features = self.backbone(x)
+    pip install timm
 
-        x = features[-1]
+Required packages:
 
-        x = self.seg_head(x)
+    pip install torch torchvision numpy pandas matplotlib scikit-learn pillow
 
-        x = nn.functional.interpolate(
-            x,
-            size=(224, 224),
-            mode="bilinear",
-            align_corners=False
-        )
+## Running the Project
 
-        return x
+1. Open the `.ipynb` file in Google Colab.
+2. Install the required dependencies.
+3. Mount Google Drive.
+4. Place the yearly satellite images in the expected folders.
+5. Run the notebook cells in order.
+6. The notebook generates LULC predictions, percentage statistics, visualizations, and confidence maps.
 
+## Project Contributions
 
-# ============================================================
-# 5. LOAD MODEL
-# ============================================================
+As the **Team Leader**, my contributions included:
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+- Coordinating a team of four members.
+- Planning and organizing the project workflow.
+- Working on the MaxViT-based LULC inference pipeline.
+- Implementing image preprocessing and prediction functions.
+- Calculating land-cover percentage statistics.
+- Generating temporal LULC analysis and visualizations.
+- Contributing to project documentation and presentation.
 
-model = MaxViTSegmentation(NUM_CLASSES)
+## Important Note
 
-model = model.to(device)
+The current notebook is an **inference and analysis implementation**. It loads an ImageNet-pretrained MaxViT backbone and defines a segmentation head.
 
-model.eval()
+The notebook does not contain a training loop for learning the segmentation head from labeled LULC ground-truth data.
 
-print("Using device:", device)
+The classification-report section uses randomly generated `y_true` and `y_pred` arrays as a placeholder. Therefore, those metrics should **not be interpreted as actual model evaluation results** unless replaced with real validation labels and predictions.
 
+## Project Output
 
-# ============================================================
-# 6. IMAGE PREPROCESSING
-# ============================================================
+The expected outputs include:
 
-transform = T.Compose([
+- Year-wise LULC percentage tables
+- LULC temporal trend graphs
+- Built-up area analysis
+- Water-body analysis
+- Vegetation change analysis
+- Land-cover composition visualization
+- Net change analysis
+- Prediction confidence maps
 
-    T.Resize((224, 224)),
+## Research Paper
 
-    T.ToTensor(),
+The project is associated with the paper:
 
-    T.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-])
+**Vision Transformer-Driven Multi-temporal Analysis of Land Use and Land Cover with Satellite Imagery**
 
+Presented at the **International Conference on Networking and Computing Technologies (iCONNECT 2026)**.
 
-# ============================================================
-# 7. LULC PREDICTION
-# ============================================================
+## Repository Contents
 
-def predict_lulc(image_path):
+    .
+    ├── Vision_Transformer_based_LULC_classification_from_Satellite_Imagery.ipynb
+    └── README.md
 
-    img = Image.open(image_path).convert("RGB")
+## Future Improvements
 
-    input_tensor = transform(img)
+- Train and fine-tune the segmentation head using labeled LULC data.
+- Use a dedicated validation dataset with ground-truth masks.
+- Report genuine segmentation metrics such as IoU, Dice score, precision, recall, and F1-score.
+- Add automated satellite-image acquisition and preprocessing.
+- Improve spatial resolution and boundary accuracy of predicted LULC maps.
+- Extend the analysis to additional geographic regions and longer time periods.
 
-    input_tensor = input_tensor.unsqueeze(0).to(device)
+---
 
-    with torch.no_grad():
-
-        output = model(input_tensor)
-
-    pred = torch.argmax(
-        output,
-        dim=1
-    ).squeeze().cpu().numpy()
-
-    return pred
-
-
-# ============================================================
-# 8. CALCULATE LULC PERCENTAGES
-# ============================================================
-
-def calculate_percentages(mask):
-
-    total_pixels = mask.size
-
-    percentages = {}
-
-    for i, cls in enumerate(CLASSES):
-
-        percentages[cls] = (
-            np.sum(mask == i) /
-            total_pixels
-        ) * 100
-
-    return percentages
-
-
-# ============================================================
-# 9. YEAR-WISE LULC ANALYSIS
-# ============================================================
-
-yearly_results = {}
-
-for year, folder in YEAR_FOLDERS.items():
-
-    folder_path = os.path.join(
-        BASE_PATH,
-        folder
-    )
-
-    if not os.path.exists(folder_path):
-
-        print(
-            f"Folder not found: {folder_path}"
-        )
-
-        continue
-
-    images = [
-        os.path.join(folder_path, f)
-
-        for f in os.listdir(folder_path)
-
-        if f.lower().endswith(
-            (".png", ".jpg", ".tif")
-        )
-    ]
-
-    if len(images) == 0:
-
-        print(
-            f"No images found for {year}"
-        )
-
-        continue
-
-    yearly_sum = Counter()
-
-    for img_path in images:
-
-        mask = predict_lulc(
-            img_path
-        )
-
-        percentages = calculate_percentages(
-            mask
-        )
-
-        yearly_sum.update(
-            percentages
-        )
-
-    average = {
-        key: value / len(images)
-
-        for key, value
-        in yearly_sum.items()
-    }
-
-    yearly_results[year] = average
-
-
-# ============================================================
-# 10. RESULTS TABLE
-# ============================================================
-
-df = pd.DataFrame(
-    yearly_results
-).T.round(2)
-
-print(df)
-
-
-# ============================================================
-# 11. OVERALL LULC CHANGE
-# ============================================================
-
-plt.figure(figsize=(12, 6))
-
-for cls in df.columns:
-
-    plt.plot(
-        df.index,
-        df[cls],
-        marker="o",
-        label=cls
-    )
-
-plt.xlabel("Year")
-
-plt.ylabel(
-    "Area Percentage (%)"
-)
-
-plt.title(
-    "MaxViT-based LULC Change Analysis (2019–2026)"
-)
-
-plt.legend()
-
-plt.grid(True)
-
-plt.show()
-
-
-# ============================================================
-# 12. BUILT-UP AREA / URBAN EXPANSION
-# ============================================================
-
-plt.figure(figsize=(7, 5))
-
-plt.bar(
-    df.index,
-    df["Built_up"]
-)
-
-plt.title(
-    "Urban Expansion using MaxViT"
-)
-
-plt.ylabel(
-    "Built-up Area (%)"
-)
-
-plt.show()
-
-
-# ============================================================
-# 13. WATER CHANGE - LINE GRAPH
-# ============================================================
-
-plt.figure(figsize=(8, 5))
-
-plt.plot(
-    df.index,
-    df["Water"],
-    marker="o"
-)
-
-plt.xlabel("Year")
-
-plt.ylabel(
-    "Water Area (%)"
-)
-
-plt.title(
-    "Temporal Change in Water Bodies (2019–2026)"
-)
-
-plt.grid(True)
-
-plt.show()
-
-
-# ============================================================
-# 14. WATER CHANGE - BAR GRAPH
-# ============================================================
-
-plt.figure(figsize=(8, 5))
-
-plt.bar(
-    df.index,
-    df["Water"]
-)
-
-plt.xlabel("Year")
-
-plt.ylabel(
-    "Water Area (%)"
-)
-
-plt.title(
-    "Year-wise Water Body Percentage"
-)
-
-plt.show()
-
-
-# ============================================================
-# 15. TOTAL VEGETATION
-# ============================================================
-
-df["Total_Vegetation"] = (
-
-    df["Trees"]
-
-    + df["Shrub"]
-
-    + df["Crops"]
-
-    + df["Flooded_Veg"]
-)
-
-
-plt.figure(figsize=(8, 5))
-
-plt.plot(
-    df.index,
-    df["Total_Vegetation"],
-    marker="o"
-)
-
-plt.xlabel("Year")
-
-plt.ylabel(
-    "Vegetation Area (%)"
-)
-
-plt.title(
-    "Overall Vegetation Change (2019–2026)"
-)
-
-plt.grid(True)
-
-plt.show()
-
-
-# ============================================================
-# 16. LAND COVER COMPOSITION
-# ============================================================
-
-plt.figure(figsize=(12, 6))
-
-plt.stackplot(
-
-    df.index,
-
-    df["Water"],
-
-    df["Total_Vegetation"],
-
-    df["Built_up"],
-
-    df["Bare_land"],
-
-    labels=[
-        "Water",
-        "Vegetation",
-        "Built-up",
-        "Bare land"
-    ]
-)
-
-plt.legend(
-    loc="upper left"
-)
-
-plt.xlabel("Year")
-
-plt.ylabel(
-    "Area Percentage (%)"
-)
-
-plt.title(
-    "Land Cover Composition Change Over Time"
-)
-
-plt.show()
-
-
-# ============================================================
-# 17. NET LULC CHANGE
-# ============================================================
-
-change_df = (
-    df.loc["2026"]
-    - df.loc["2019"]
-)
-
-plt.figure(figsize=(8, 5))
-
-plt.bar(
-    change_df.index,
-    change_df.values
-)
-
-plt.xticks(
-    rotation=45
-)
-
-plt.ylabel(
-    "Percentage Change"
-)
-
-plt.title(
-    "Net LULC Change (2019–2026)"
-)
-
-plt.grid(axis="y")
-
-plt.tight_layout()
-
-plt.show()
-
-
-# ============================================================
-# 18. PREDICTION WITH CONFIDENCE
-# ============================================================
-
-def predict_with_confidence(image_path):
-
-    img = Image.open(
-        image_path
-    ).convert("RGB")
-
-    input_tensor = transform(
-        img
-    ).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-
-        output = model(
-            input_tensor
-        )
-
-        probs = torch.softmax(
-            output,
-            dim=1
-        )
-
-    confidence = torch.max(
-        probs,
-        dim=1
-    )[0].squeeze().cpu().numpy()
-
-    prediction = torch.argmax(
-        probs,
-        dim=1
-    ).squeeze().cpu().numpy()
-
-    return prediction, confidence
-
-
-# ============================================================
-# 19. DISPLAY CONFIDENCE MAP
-# ============================================================
-
-if "images" in locals() and len(images) > 0:
-
-    pred, confidence = (
-        predict_with_confidence(
-            images[0]
-        )
-    )
-
-    plt.figure(figsize=(6, 6))
-
-    plt.imshow(
-        confidence,
-        cmap="viridis"
-    )
-
-    plt.colorbar(
-        label="Confidence Score"
-    )
-
-    plt.title(
-        "MaxViT Prediction Confidence Map"
-    )
-
-    plt.axis("off")
-
-    plt.show()
+**Academic Final Year Project | Team Size: 4 | Role: Team Leader**
